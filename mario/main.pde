@@ -5,6 +5,7 @@ float playerSize = 30;
 float playerSpeedX = 0;
 float playerSpeedY = 0;
 boolean onGround = false;
+PImage playerImg;
 
 // --- スクロール ---
 float scrollX = 0;
@@ -38,6 +39,8 @@ void setup() {
   blocks[7] = new Block(1600, groundY - 60);
   blocks[8] = new Block(1600, groundY - 90);
   blocks[9] = new Block(1600, groundY - 120);
+  
+  playerImg = loadImage("emika.png");
 }
 
 void draw() {
@@ -45,6 +48,11 @@ void draw() {
 
   updatePlayer();
   scrollX = playerX - 100;
+  
+  // 画像描画（画像の中心がプレイヤー座標に来るよう調整）
+  imageMode(CENTER);
+  image(playerImg, playerX - scrollX, playerY, playerSize, playerSize);
+
 
   // 地面
   fill(50, 200, 70);
@@ -68,9 +76,9 @@ void draw() {
     onGround = true;
   }
 
-  // プレイヤー描画
-  fill(255, 0, 0);
-  ellipse(playerX - scrollX, playerY, playerSize, playerSize);
+
+  
+  
 
   // 敵
   for (Enemy e : enemies) {
