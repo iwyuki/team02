@@ -34,20 +34,20 @@ void setup() {
 
   // ブロックを生成
   blocks = new Block[10];
-  blocks[0] = new Block(300, groundY - 60);   // 空中
+  blocks[0] = new Block(300, groundY - 60);
   blocks[1] = new Block(340, groundY - 60);
-  blocks[2] = new Block(800, groundY - 120);  // 高い場所
+  blocks[2] = new Block(800, groundY - 120);
   blocks[3] = new Block(1000, groundY - 60);
   blocks[4] = new Block(1400, groundY - 90);
   blocks[5] = new Block(1450, groundY - 90);
-  blocks[6] = new Block(1600, groundY - 30);  // 土管風
+  blocks[6] = new Block(1600, groundY - 30);
   blocks[7] = new Block(1600, groundY - 60);
   blocks[8] = new Block(1600, groundY - 90);
   blocks[9] = new Block(1600, groundY - 120);
 }
 
 void draw() {
-  background(135, 206, 235); // 空
+  background(135, 206, 235);
 
   // プレイヤー位置更新
   updatePlayer();
@@ -59,14 +59,11 @@ void draw() {
   fill(50, 200, 70);
   rect(-scrollX, groundY, 2000, height - groundY);
 
-  // ブロック描画
+  // ブロック処理
+  onGround = false; // 一度リセットして判定を再確認
   for (Block b : blocks) {
     b.show(scrollX);
-    if (b.checkCollision(playerX, playerY, playerSize)) {
-      playerY = b.y - playerSize / 2;
-      playerSpeedY = 0;
-      onGround = true;
-    }
+    b.checkCollisionWithResponse();
   }
 
   // プレイヤー物理処理
@@ -84,7 +81,7 @@ void draw() {
   fill(255, 0, 0);
   ellipse(playerX - scrollX, playerY, playerSize, playerSize);
 
-  // 敵描画と移動
+  // 敵の処理
   for (Enemy e : enemies) {
     e.move();
     e.show(scrollX);
@@ -94,13 +91,12 @@ void draw() {
     }
   }
 
-  // ゴール描画
+  // ゴール
   fill(255);
   rect(goalX - scrollX, groundY - 120, 10, 120);
   fill(255, 0, 0);
   ellipse(goalX - scrollX + 5, groundY - 120, 20, 20);
 
-  // ゴール判定
   if (playerX >= goalX) {
     fill(0, 0, 0, 180);
     textSize(40);
@@ -132,7 +128,7 @@ void keyReleased() {
 }
 
 void mousePressed() {
-  if (!gameClear) loop(); // 再開（失敗時用）
+  if (!gameClear) loop();
 }
 
 // --- 敵クラス ---
@@ -162,8 +158,10 @@ class Enemy {
   }
 
   boolean checkCollision(float px, float py, float psize) {
-    return (px + psize / 2 > x && px - psize / 2 < x + size &&
-            py + psize / 2 > y && py - psize / 2 < y + size);
+    return (px + psize / 2 > x &&
+            px - psize / 2 < x + size &&
+            py + psize / 2 > y &&
+            py - psize / 2 < y + size);
   }
 }
 
@@ -182,10 +180,41 @@ class Block {
     rect(x - scroll, y, size, size);
   }
 
-  boolean checkCollision(float px, float py, float psize) {
-    // プレイヤーが上から乗った場合のみ
-    return (px + psize / 2 > x && px - psize / 2 < x + size &&
-            py + psize / 2 >= y && py + psize / 2 <= y + 10 &&
-            playerSpeedY >= 0);
+  // 衝突していたら押し戻し処理
+  void checkCollisionWithResponse() {
+    float px = playerX;
+    float py = playerY;
+    float r = playerSize / 2;
+
+    if (px + r > x && px - r < x + size &&
+        py + r > y && py - r < y + size) {
+
+      float overlapLeft = px + r - x;
+      float overlapRight = x + size - (px - r);
+      float overlapTop = py + r - y;
+      float overlapBottom = y + size - (py - r);
+
+      // 最小の重なり方向で補正
+      float minOverlap = min(min(overlapLeft, overlapRight), min(overlapTop, overlapBottom));
+
+      if (minOverlap == overlapTop) {
+        // 上から乗った
+        playerY = y - r;
+        playerSpeedY = 0;
+        onGround = true;
+      } else if (minOverlap == overlapBottom) {
+        // 下からぶつかった
+        playerY = y + size + r;
+        if (playerSpeedY < 0) playerSpeedY = 0;
+      } else if (minOverlap == overlapLeft) {
+        // 左からぶつかった
+        playerX = x - r;
+        if (playerSpeedX > 0) playerSpeedX = 0;
+      } else if (minOverlap == overlapRight) {
+        // 右からぶつかった
+        playerX = x + size + r;
+        if (playerSpeedX < 0) playerSpeedX = 0;
+      }
+    }
   }
 }
