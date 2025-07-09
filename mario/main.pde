@@ -13,10 +13,10 @@ float scrollX = 0;
 float gravity = 0.8;
 float jumpPower = -15;
 
-// 地面
+// 地面の高さ
 float groundY = 350;
 
-// 敵情報（複数可）
+// 敵情報
 Enemy[] enemies;
 
 void setup() {
@@ -30,18 +30,21 @@ void setup() {
 void draw() {
   background(135, 206, 235); // 空色
 
+  // プレイヤー位置を更新
+  updatePlayer();
+
   // スクロール処理
   scrollX = playerX - 100;
 
-  // 地面
+  // 地面の描画
   fill(50, 200, 70);
   rect(-scrollX, groundY, width * 2, height - groundY);
 
-  // プレイヤーの物理挙動
+  // プレイヤーの重力処理
   playerSpeedY += gravity;
   playerY += playerSpeedY;
 
-  // 地面との衝突
+  // 地面との衝突判定
   if (playerY + playerSize / 2 >= groundY) {
     playerY = groundY - playerSize / 2;
     playerSpeedY = 0;
@@ -57,12 +60,17 @@ void draw() {
     e.update(scrollX);
     if (e.checkCollision(playerX, playerY, playerSize)) {
       println("ゲームオーバー！");
-      noLoop(); // ゲームストップ
+      noLoop(); // 停止
     }
   }
 }
 
-// 移動処理
+// プレイヤーの位置更新
+void updatePlayer() {
+  playerX += playerSpeedX;
+}
+
+// キーが押されたとき
 void keyPressed() {
   if (keyCode == RIGHT) {
     playerSpeedX = 5;
@@ -74,15 +82,11 @@ void keyPressed() {
   }
 }
 
+// キーが離されたとき
 void keyReleased() {
   if (keyCode == RIGHT || keyCode == LEFT) {
     playerSpeedX = 0;
   }
-}
-
-// 毎フレームプレイヤーの位置更新
-void updatePlayer() {
-  playerX += playerSpeedX;
 }
 
 // 敵クラス
@@ -106,6 +110,7 @@ class Enemy {
   }
 }
 
+// クリックで再開（デバッグ用）
 void mousePressed() {
-  loop(); // クリックで再開（デバッグ用）
+  loop();
 }
