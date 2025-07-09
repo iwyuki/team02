@@ -11,10 +11,17 @@ float scrollX = 0;
 float gravity = 0.8;
 float jumpPower = -15;
 
+<<<<<<< HEAD
+// 地面
+float groundY = 350;
+
+// 敵情報（複数可）
+=======
 // --- 地面の高さ ---
 float groundY = 350;
 
 // --- 敵 ---
+>>>>>>> faa380a10b51a99cfc20c6db680d6e45cfbb2cbd
 Enemy[] enemies;
 
 // --- ブロック ---
@@ -47,26 +54,46 @@ void setup() {
 }
 
 void draw() {
+<<<<<<< HEAD
   background(135, 206, 235);
+=======
+<<<<<<< HEAD
+  background(135, 206, 235); // 空色
+  // プレイヤーの移動
+=======
+  background(135, 206, 235); // 空
+>>>>>>> 353158e776e75a77f66178cdea6ba5d3add8fe1d
 
   // プレイヤー位置更新
+>>>>>>> faa380a10b51a99cfc20c6db680d6e45cfbb2cbd
   updatePlayer();
-
   // スクロール処理
   scrollX = playerX - 100;
 
+<<<<<<< HEAD
+  // 地面
+=======
   // 地面描画
+>>>>>>> faa380a10b51a99cfc20c6db680d6e45cfbb2cbd
   fill(50, 200, 70);
   rect(-scrollX, groundY, 2000, height - groundY);
 
+<<<<<<< HEAD
   // ブロック処理
   onGround = false; // 一度リセットして判定を再確認
+=======
+<<<<<<< HEAD
+  // プレイヤーの物理挙動
+=======
+  // ブロック描画
+>>>>>>> 353158e776e75a77f66178cdea6ba5d3add8fe1d
   for (Block b : blocks) {
     b.show(scrollX);
     b.checkCollisionWithResponse();
   }
 
   // プレイヤー物理処理
+>>>>>>> faa380a10b51a99cfc20c6db680d6e45cfbb2cbd
   playerSpeedY += gravity;
   playerY += playerSpeedY;
 
@@ -87,7 +114,11 @@ void draw() {
     e.show(scrollX);
     if (e.checkCollision(playerX, playerY, playerSize)) {
       println("ゲームオーバー！");
+<<<<<<< HEAD
+      noLoop(); // ゲームストップ
+=======
       noLoop();
+>>>>>>> faa380a10b51a99cfc20c6db680d6e45cfbb2cbd
     }
   }
 
@@ -106,10 +137,14 @@ void draw() {
   }
 }
 
+<<<<<<< HEAD
+// 移動処理
+=======
 void updatePlayer() {
   playerX += playerSpeedX;
 }
 
+>>>>>>> faa380a10b51a99cfc20c6db680d6e45cfbb2cbd
 void keyPressed() {
   if (keyCode == RIGHT) {
     playerSpeedX = 5;
@@ -127,11 +162,20 @@ void keyReleased() {
   }
 }
 
+<<<<<<< HEAD
+// 毎フレームプレイヤーの位置更新
+void updatePlayer() {
+  playerX += playerSpeedX;
+}
+
+// 敵クラス
+=======
 void mousePressed() {
   if (!gameClear) loop();
 }
 
 // --- 敵クラス ---
+>>>>>>> faa380a10b51a99cfc20c6db680d6e45cfbb2cbd
 class Enemy {
   float x, y;
   float size = 30;
@@ -165,6 +209,22 @@ class Enemy {
   }
 }
 
+<<<<<<< HEAD
+void mousePressed() {
+  // ゲームの初期化
+  playerX = 100;
+  playerY = 300;
+  playerSpeedX = 0;
+  playerSpeedY = 0;
+  onGround = false;
+
+  // 敵を再生成
+  enemies[0] = new Enemy(600, groundY - 30);
+  enemies[1] = new Enemy(900, groundY - 30);
+  enemies[2] = new Enemy(1300, groundY - 30);
+
+  loop(); // 再スタート
+=======
 // --- ブロッククラス ---
 class Block {
   float x, y;
@@ -217,4 +277,5 @@ class Block {
       }
     }
   }
+>>>>>>> faa380a10b51a99cfc20c6db680d6e45cfbb2cbd
 }
