@@ -11,28 +11,22 @@ float scrollX = 0;
 float gravity = 0.8;
 float jumpPower = -15;
 
-// --- 地面の高さ ---
+// --- 地面 ---
 float groundY = 350;
 
-// --- 敵 ---
+// --- 敵・ブロック・ゴール ---
 Enemy[] enemies;
-
-// --- ブロック ---
 Block[] blocks;
-
-// --- ゴール地点 ---
 float goalX = 1800;
 boolean gameClear = false;
 
 void setup() {
   size(800, 400);
 
-  // 敵を生成
   enemies = new Enemy[2];
   enemies[0] = new Enemy(600, groundY - 30, 500, 700);
   enemies[1] = new Enemy(1200, groundY - 30, 1100, 1300);
 
-  // ブロックを生成
   blocks = new Block[10];
   blocks[0] = new Block(300, groundY - 60);
   blocks[1] = new Block(340, groundY - 60);
@@ -50,25 +44,24 @@ void draw() {
   background(135, 206, 235); // 空色
 
   updatePlayer();
-
   scrollX = playerX - 100;
 
-  // 地面描画
+  // 地面
   fill(50, 200, 70);
   rect(-scrollX, groundY, 2000, height - groundY);
 
-  // ブロック描画＆衝突
+  // ブロック
   onGround = false;
   for (Block b : blocks) {
     b.show(scrollX);
     b.checkCollisionWithResponse();
   }
 
-  // 重力と落下
+  // 重力
   playerSpeedY += gravity;
   playerY += playerSpeedY;
 
-  // 地面との衝突
+  // 地面衝突
   if (playerY + playerSize / 2 >= groundY) {
     playerY = groundY - playerSize / 2;
     playerSpeedY = 0;
@@ -79,7 +72,7 @@ void draw() {
   fill(255, 0, 0);
   ellipse(playerX - scrollX, playerY, playerSize, playerSize);
 
-  // 敵の描画と処理
+  // 敵
   for (Enemy e : enemies) {
     e.move();
     e.show(scrollX);
@@ -89,13 +82,12 @@ void draw() {
     }
   }
 
-  // ゴール描画
+  // ゴール
   fill(255);
   rect(goalX - scrollX, groundY - 120, 10, 120);
   fill(255, 0, 0);
   ellipse(goalX - scrollX + 5, groundY - 120, 20, 20);
 
-  // ゴール判定
   if (playerX >= goalX) {
     fill(0, 0, 0, 180);
     textSize(40);
@@ -103,10 +95,6 @@ void draw() {
     gameClear = true;
     noLoop();
   }
-}
-
-void updatePlayer() {
-  playerX += playerSpeedX;
 }
 
 void keyPressed() {
@@ -128,86 +116,4 @@ void keyReleased() {
 
 void mousePressed() {
   if (!gameClear) loop();
-}
-
-// --- 敵クラス ---
-class Enemy {
-  float x, y;
-  float size = 30;
-  float speed = 1.5;
-  float leftBound, rightBound;
-
-  Enemy(float x, float y, float leftBound, float rightBound) {
-    this.x = x;
-    this.y = y;
-    this.leftBound = leftBound;
-    this.rightBound = rightBound;
-  }
-
-  void move() {
-    x += speed;
-    if (x < leftBound || x > rightBound) {
-      speed *= -1;
-    }
-  }
-
-  void show(float scroll) {
-    fill(0);
-    rect(x - scroll, y, size, size);
-  }
-
-  boolean checkCollision(float px, float py, float psize) {
-    return (px + psize / 2 > x &&
-            px - psize / 2 < x + size &&
-            py + psize / 2 > y &&
-            py - psize / 2 < y + size);
-  }
-}
-
-// --- ブロッククラス ---
-class Block {
-  float x, y;
-  float size = 40;
-
-  Block(float x, float y) {
-    this.x = x;
-    this.y = y;
-  }
-
-  void show(float scroll) {
-    fill(200, 150, 0);
-    rect(x - scroll, y, size, size);
-  }
-
-  void checkCollisionWithResponse() {
-    float px = playerX;
-    float py = playerY;
-    float r = playerSize / 2;
-
-    if (px + r > x && px - r < x + size &&
-        py + r > y && py - r < y + size) {
-
-      float overlapLeft = px + r - x;
-      float overlapRight = x + size - (px - r);
-      float overlapTop = py + r - y;
-      float overlapBottom = y + size - (py - r);
-
-      float minOverlap = min(min(overlapLeft, overlapRight), min(overlapTop, overlapBottom));
-
-      if (minOverlap == overlapTop) {
-        playerY = y - r;
-        playerSpeedY = 0;
-        onGround = true;
-      } else if (minOverlap == overlapBottom) {
-        playerY = y + size + r;
-        if (playerSpeedY < 0) playerSpeedY = 0;
-      } else if (minOverlap == overlapLeft) {
-        playerX = x - r;
-        if (playerSpeedX > 0) playerSpeedX = 0;
-      } else if (minOverlap == overlapRight) {
-        playerX = x + size + r;
-        if (playerSpeedX < 0) playerSpeedX = 0;
-      }
-    }
-  }
 }

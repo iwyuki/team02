@@ -1,0 +1,3 @@
+void updatePlayer() {
+  playerX += playerSpeedX;
+}
