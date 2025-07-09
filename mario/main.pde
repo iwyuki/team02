@@ -78,7 +78,7 @@ void draw() {
     e.show(scrollX);
     if (e.checkCollision(playerX, playerY, playerSize)) {
       println("ゲームオーバー！");
-      noLoop();
+      restartGame();  // 衝突時にゲームをリスタート
     }
   }
 
@@ -93,7 +93,7 @@ void draw() {
     textSize(40);
     text("CLEAR!", width / 2 - 80, height / 2);
     gameClear = true;
-    noLoop();
+    restartGame();  // 衝突時にゲームをリスタート
   }
 }
 
@@ -112,6 +112,21 @@ void keyReleased() {
   if (keyCode == RIGHT || keyCode == LEFT) {
     playerSpeedX = 0;
   }
+}
+
+void restartGame() {
+  playerX = 100;
+  playerY = 300;
+  playerSpeedX = 0;
+  playerSpeedY = 0;
+  onGround = false;
+  gameClear = false;
+
+  // 敵を初期化
+  enemies[0] = new Enemy(600, groundY - 30, 500, 700);
+  enemies[1] = new Enemy(1200, groundY - 30, 1100, 1300);
+
+  loop(); // draw() 再開
 }
 
 void mousePressed() {
