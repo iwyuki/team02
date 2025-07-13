@@ -11,8 +11,7 @@ class Block {
     fill(200, 150, 0);
     rect(x - scroll, y, size, size);
   }
-  
-  
+
   boolean checkCollisionWithResponse() {
     float px = playerX;
     float py = playerY;
@@ -32,7 +31,7 @@ class Block {
       if (minOverlap == overlapTop) {
         playerY = y - r;
         playerSpeedY = 0;
-        landed = true; 
+        landed = true;
       } else if (minOverlap == overlapBottom) {
         playerY = y + size + r;
         if (playerSpeedY < 0) playerSpeedY = 0;
@@ -45,6 +44,6 @@ class Block {
       }
     }
 
-    return landed; 
+    return landed;
   }
 }

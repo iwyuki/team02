@@ -7,6 +7,7 @@ float playerSpeedY = 0;
 boolean onGround = false;
 PImage playerImg;
 PImage enemyImg1;
+PImage enemyImg2;
 
 // --- スクロール ---
 float scrollX = 0;
@@ -27,10 +28,13 @@ void setup() {
   size(800, 400);
 
   enemyImg1 = loadImage("kurosio.png");
+  enemyImg2 = loadImage("udonn.png");
 
-  enemies = new Enemy[2];
-  enemies[0] = new Enemy(600, groundY - 65, 500, 700, enemyImg1);
-  enemies[1] = new Enemy(1200, groundY - 65, 1100, 1300, enemyImg1);
+  enemies = new Enemy[4];
+  enemies[0] = new Enemy(600, groundY - 65, 50, 600, enemyImg1);
+  enemies[1] = new Enemy(1200, groundY - 65, 1050, 1330, enemyImg1);
+  enemies[2] = new Enemy(2000, groundY - 65, 1850, 2130, enemyImg2);
+  enemies[3] = new Enemy(1900, groundY - 65, 1850, 2030, enemyImg2);
 
   // 画面上に自由な位置に土管を置ける
   pipes = new Pipe[4];
@@ -54,11 +58,29 @@ void draw() {
   imageMode(CENTER);
   image(playerImg, playerX - scrollX, playerY, playerSize, playerSize);
 
-  boolean playerOnPipe = false;
+  // まず onGround を false にリセット
+  onGround = false;
+
+  // 重力・移動
+  playerSpeedY += gravity;
+  playerY += playerSpeedY; // 重力適用後のプレイヤーY座標
+
+  // --- 各足場との衝突判定とonGroundの設定 ---
+  // パイプ
   for (Pipe p : pipes) {
     p.show(scrollX);
+    // checkCollisionWithResponseで衝突応答（位置調整、playerSpeedY=0）が行われる
     if (p.checkCollisionWithResponse()) {
-      playerOnPipe = true;
+      onGround = true; // パイプの上に着地
+    }
+  }
+
+  // ブロック
+  for (Block b : blockManager.blocks) {
+    b.show(scrollX);
+    // checkCollisionWithResponseで衝突応答（位置調整、playerSpeedY=0）が行われる
+    if (b.checkCollisionWithResponse()) {
+      onGround = true; // ブロックの上に着地
     }
   }
 
@@ -66,40 +88,23 @@ void draw() {
   fill(50, 200, 70);
   rect(-scrollX, groundY, 2400, height - groundY);
   rect(2500 - scrollX, groundY, 340, height - groundY);
-  rect(3040 - scrollX, groundY, 2000, height - groundY); 
+  rect(3040 - scrollX, groundY, 2000, height - groundY);  
 
-  // ブロック
-  boolean playerOnBlock = false;
-  for (Block b : blockManager.blocks) {
-    b.show(scrollX);
-    if (b.checkCollisionWithResponse()) {
-      playerOnBlock = true;
-    }
-  }
+  // 地面との衝突判定 (地表面)
+  // onGroundの最終的な決定はここでも行われる
+  boolean onSolidGroundArea = (playerX >= 0 && playerX <= 2400) || (playerX >= 2500 && playerX <= 2840) || (playerX >= 3040 && playerX <= 5040);
 
-  // プレイヤーがブロックや土管の上にいるか
-  onGround = playerOnBlock || playerOnPipe;
-
-  // 重力・移動
-  playerSpeedY += gravity;
-  playerY += playerSpeedY;
-
-  // 地面判定範囲（地面の横範囲を指定）
-  boolean onSolidGround = (playerX >= 0 && playerX <= 2400) || (playerX >= 2500 && playerX <= 3200);
-
-  // 地面衝突判定
   if (playerY + playerSize / 2 >= groundY) {
-    if (onSolidGround) {
+    if (onSolidGroundArea) {
       playerY = groundY - playerSize / 2;
-      playerSpeedY = 0;
-      onGround = true;
+      playerSpeedY = 0; // 地面に着地したら速度を0に
+      onGround = true;  // 地面の上にいると判定
     } else {
-      // 穴の上なので落ちる
-      onGround = false;
+      // 穴の上なので落ちる (onGroundはfalseのまま)
     }
-  } else {
-    onGround = false;
   }
+  // --- 衝突判定とonGroundの設定ここまで ---
+
 
   // 穴に落ちたらゲームオーバー
   if (playerY + playerSize / 2 - 100 > height) {
@@ -132,6 +137,8 @@ void draw() {
   }
 }
 
+
+
 void keyPressed() {
   if (keyCode == RIGHT) {
     playerSpeedX = 5;
@@ -158,8 +165,10 @@ void restartGame() {
   gameClear = false;
 
   // 敵を初期化
-  enemies[0] = new Enemy(600, groundY - 65, 500, 700,enemyImg1);
-  enemies[1] = new Enemy(1200, groundY - 65, 1100, 1300,enemyImg1);
+  enemies[0] = new Enemy(600, groundY - 65, 50, 600,enemyImg1);
+  enemies[1] = new Enemy(1200, groundY - 65, 1050, 1330,enemyImg1);
+  enemies[2] = new Enemy(2000, groundY - 65, 1900, 2130, enemyImg2);
+  enemies[3] = new Enemy(1950, groundY - 65, 1850, 2080, enemyImg2);
 
   loop(); // draw() 再開
 }

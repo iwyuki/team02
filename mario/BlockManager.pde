@@ -2,7 +2,7 @@ class BlockManager {
   Block[] blocks;
 
   BlockManager() {
-    blocks = new Block[16];
+    blocks = new Block[19];
     blocks[0]  = new Block(660, groundY - 130);
     blocks[1]  = new Block(700, groundY - 130);
     blocks[2]  = new Block(740, groundY - 130);
@@ -19,6 +19,8 @@ class BlockManager {
     blocks[13] = new Block(2940, groundY - 260);
     blocks[14] = new Block(2980, groundY - 260);
     blocks[15] = new Block(3020, groundY - 260);
-
+    blocks[16] = new Block(3200, groundY - 260);
+    blocks[17] = new Block(3240, groundY - 260);
+    blocks[18] = new Block(3280, groundY - 260);
   }
 }
