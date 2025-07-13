@@ -1,3 +1,5 @@
+// Pipe.pde
+
 class Pipe {
   float x, y;
   float width = 40;

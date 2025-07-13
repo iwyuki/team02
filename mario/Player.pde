@@ -1,3 +1,0 @@
-void updatePlayer() {
-  playerX += playerSpeedX;
-}
