@@ -1,45 +1,46 @@
 // --- プレイヤー ---
 float playerX = 100;
 float playerY = 300;
-float playerSize = 30;
+float playerSize = 50;
 float playerSpeedX = 0;
 float playerSpeedY = 0;
 boolean onGround = false;
 PImage playerImg;
+PImage enemyImg1;
 
 // --- スクロール ---
 float scrollX = 0;
 float gravity = 0.8;
-float jumpPower = -15;
+float jumpPower = -16;
 
 // --- 地面 ---
 float groundY = 350;
 
 // --- 敵・ブロック・ゴール ---
 Enemy[] enemies;
-Block[] blocks;
-float goalX = 1800;
+BlockManager blockManager;
+Pipe[] pipes;
+float goalX = 6000;
 boolean gameClear = false;
 
 void setup() {
   size(800, 400);
 
-  enemies = new Enemy[2];
-  enemies[0] = new Enemy(600, groundY - 30, 500, 700);
-  enemies[1] = new Enemy(1200, groundY - 30, 1100, 1300);
+  enemyImg1 = loadImage("kurosio.png");
 
-  blocks = new Block[10];
-  blocks[0] = new Block(300, groundY - 60);
-  blocks[1] = new Block(340, groundY - 60);
-  blocks[2] = new Block(800, groundY - 120);
-  blocks[3] = new Block(1000, groundY - 60);
-  blocks[4] = new Block(1400, groundY - 90);
-  blocks[5] = new Block(1450, groundY - 90);
-  blocks[6] = new Block(1600, groundY - 30);
-  blocks[7] = new Block(1600, groundY - 60);
-  blocks[8] = new Block(1600, groundY - 90);
-  blocks[9] = new Block(1600, groundY - 120);
-  
+  enemies = new Enemy[2];
+  enemies[0] = new Enemy(600, groundY - 65, 500, 700, enemyImg1);
+  enemies[1] = new Enemy(1200, groundY - 65, 1100, 1300, enemyImg1);
+
+  // 画面上に自由な位置に土管を置ける
+  pipes = new Pipe[4];
+  pipes[0] = new Pipe(1000, groundY - 75);
+  pipes[1] = new Pipe(1800, groundY - 125);
+  pipes[2] = new Pipe(1400, groundY - 100);
+  pipes[3] = new Pipe(2200, groundY - 125);
+
+  blockManager = new BlockManager();
+
   playerImg = loadImage("emika.png");
 }
 
@@ -48,37 +49,63 @@ void draw() {
 
   updatePlayer();
   scrollX = playerX - 100;
-  
+
   // 画像描画（画像の中心がプレイヤー座標に来るよう調整）
   imageMode(CENTER);
   image(playerImg, playerX - scrollX, playerY, playerSize, playerSize);
 
+  boolean playerOnPipe = false;
+  for (Pipe p : pipes) {
+    p.show(scrollX);
+    if (p.checkCollisionWithResponse()) {
+      playerOnPipe = true;
+    }
+  }
 
   // 地面
   fill(50, 200, 70);
-  rect(-scrollX, groundY, 2000, height - groundY);
+  rect(-scrollX, groundY, 2400, height - groundY);
+  rect(2500 - scrollX, groundY, 340, height - groundY);
+  rect(3040 - scrollX, groundY, 2000, height - groundY); 
 
   // ブロック
-  onGround = false;
-  for (Block b : blocks) {
+  boolean playerOnBlock = false;
+  for (Block b : blockManager.blocks) {
     b.show(scrollX);
-    b.checkCollisionWithResponse();
+    if (b.checkCollisionWithResponse()) {
+      playerOnBlock = true;
+    }
   }
 
-  // 重力
+  // プレイヤーがブロックや土管の上にいるか
+  onGround = playerOnBlock || playerOnPipe;
+
+  // 重力・移動
   playerSpeedY += gravity;
   playerY += playerSpeedY;
 
-  // 地面衝突
+  // 地面判定範囲（地面の横範囲を指定）
+  boolean onSolidGround = (playerX >= 0 && playerX <= 2400) || (playerX >= 2500 && playerX <= 3200);
+
+  // 地面衝突判定
   if (playerY + playerSize / 2 >= groundY) {
-    playerY = groundY - playerSize / 2;
-    playerSpeedY = 0;
-    onGround = true;
+    if (onSolidGround) {
+      playerY = groundY - playerSize / 2;
+      playerSpeedY = 0;
+      onGround = true;
+    } else {
+      // 穴の上なので落ちる
+      onGround = false;
+    }
+  } else {
+    onGround = false;
   }
 
-
-  
-  
+  // 穴に落ちたらゲームオーバー
+  if (playerY + playerSize / 2 - 100 > height) {
+    println("ゲームオーバー！（落下）");
+    restartGame();
+  }
 
   // 敵
   for (Enemy e : enemies) {
@@ -131,8 +158,8 @@ void restartGame() {
   gameClear = false;
 
   // 敵を初期化
-  enemies[0] = new Enemy(600, groundY - 30, 500, 700);
-  enemies[1] = new Enemy(1200, groundY - 30, 1100, 1300);
+  enemies[0] = new Enemy(600, groundY - 65, 500, 700,enemyImg1);
+  enemies[1] = new Enemy(1200, groundY - 65, 1100, 1300,enemyImg1);
 
   loop(); // draw() 再開
 }

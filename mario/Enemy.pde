@@ -1,14 +1,16 @@
 class Enemy {
   float x, y;
-  float size = 30;
+  float size = 70;
   float speed = 1.5;
   float leftBound, rightBound;
+  PImage img;  // 敵画像
 
-  Enemy(float x, float y, float leftBound, float rightBound) {
+  Enemy(float x, float y, float leftBound, float rightBound, PImage img) {
     this.x = x;
     this.y = y;
     this.leftBound = leftBound;
     this.rightBound = rightBound;
+    this.img = img;
   }
 
   void move() {
@@ -19,8 +21,13 @@ class Enemy {
   }
 
   void show(float scroll) {
-    fill(0);
-    rect(x - scroll, y, size, size);
+    if (img != null) {
+      imageMode(CORNER);
+      image(img, x - scroll, y, size, size);
+    } else {
+      fill(0);
+      rect(x - scroll, y, size, size);
+    }
   }
 
   boolean checkCollision(float px, float py, float psize) {
