@@ -8,9 +8,9 @@ float playerSpeedX = 0;
 float playerSpeedY = 0;
 boolean onGround = false;
 PImage playerImg;
-PImage playerPoweredUpImg; // 強化時のプレイヤー画像（頭の上に表示）
-boolean isPoweredUp = false; // 強化状態かどうかのフラグ
-float poweredUpImgOffsetY = -playerSize / 2 - 15; // 強化画像の位置調整
+PImage playerPoweredUpImg;
+boolean isPoweredUp = false;
+float poweredUpImgOffsetY = -playerSize / 2 - 15;
 
 // --- スクロール ---
 float scrollX = 0;
@@ -21,12 +21,13 @@ float jumpPower = -16;
 float groundY = 350;
 
 // --- 敵・ブロック・ゴール ---
-ArrayList<Enemy> enemies; // Enemy[] から ArrayList<Enemy> に変更
+ArrayList<Enemy> enemies;
 BlockManager blockManager;
 Pipe[] pipes;
-QuestionBlock[] qBlocks; // QuestionBlockの配列を追加
-ArrayList<Item> items; // 生成されるアイテムを管理するリスト
-ArrayList<Bullet> bullets; // 発射される弾を管理するリスト
+QuestionBlock[] qBlocks;
+ArrayList<Item> items;
+ArrayList<Bullet> bullets;
+Boss boss;
 
 float goalX = 4600;
 boolean gameClear = false;
@@ -35,20 +36,21 @@ boolean gameClear = false;
 PImage enemyImg1;
 PImage enemyImg2;
 PImage enemyImg3;
-PImage fireFlowerImg;    // ファイアフラワー
+PImage fireFlowerImg;
+PImage bossImg;
 
 void setup() {
   size(800, 400);
 
   enemyImg1 = loadImage("kurosio.png");
   enemyImg2 = loadImage("udonn.png");
-  enemyImg3 = loadImage("sudachi.jpg");
+  enemyImg3 = loadImage("sudachi.png");
   playerImg = loadImage("emika.png");
-  playerPoweredUpImg = loadImage("dango.png"); // 強化時の画像をロード (例: ファイアフラワーのアイコンなど)
+  playerPoweredUpImg = loadImage("dango.png");
+  bossImg = loadImage("aidaimikyan.png");
 
-  fireFlowerImg = loadImage("dango.png");              // ファイアフラワーの画像をロード
+  fireFlowerImg = loadImage("dango.png");
 
-  // 敵のArrayListを初期化
   enemies = new ArrayList<Enemy>();
   enemies.add(new Enemy(600, groundY - 65, 50, 600, enemyImg1));
   enemies.add(new Enemy(1200, groundY - 65, 1050, 1330, enemyImg1));
@@ -57,7 +59,7 @@ void setup() {
   enemies.add(new Enemy(2110, groundY - 180, 0, 2110, enemyImg3));
   enemies.add(new Enemy(2600, groundY - 130, 0, 2600, enemyImg3));
   enemies.add(new Enemy(1400, groundY - 160, 0, 1400, enemyImg3));
-  
+
   pipes = new Pipe[4];
   pipes[0] = new Pipe(1000, groundY - 75);
   pipes[1] = new Pipe(1800, groundY - 125);
@@ -66,107 +68,91 @@ void setup() {
 
   blockManager = new BlockManager();
 
-  // ハテナブロックの初期化
   qBlocks = new QuestionBlock[2];
   qBlocks[0] = new QuestionBlock(440, 220, fireFlowerImg);
   qBlocks[1] = new QuestionBlock(2400, 150, fireFlowerImg);
 
-  items = new ArrayList<Item>();    // アイテムリストの初期化
-  bullets = new ArrayList<Bullet>(); // 弾リストの初期化
+  items = new ArrayList<Item>();
+  bullets = new ArrayList<Bullet>();
+
+  boss = new Boss(3600, groundY - 200 / 2, 200, bossImg);
 }
 
 void draw() {
-  background(135, 206, 235); // 空色
+  background(135, 206, 235);
 
-  updatePlayer(); // player.pde から関数を呼び出す
+  updatePlayer();
   scrollX = playerX - 100;
 
-  // 画像描画（画像の中心がプレイヤー座標に来るよう調整）
   imageMode(CENTER);
   image(playerImg, playerX - scrollX, playerY, playerSize, playerSize);
-  // 強化状態なら頭上に画像を表示
   if (isPoweredUp) {
-    image(playerPoweredUpImg, playerX - scrollX, playerY + poweredUpImgOffsetY, 30, 30); // **ここを修正**
+    image(playerPoweredUpImg, playerX - scrollX, playerY + poweredUpImgOffsetY, 30, 30);
   }
 
-  // まず onGround を false にリセット
   onGround = false;
-
-  // 重力・移動
   playerSpeedY += gravity;
-  playerY += playerSpeedY; // 重力適用後のプレイヤーY座標
+  playerY += playerSpeedY;
 
-  // --- 各足場との衝突判定とonGroundの設定 ---
-  // パイプ
   for (Pipe p : pipes) {
     p.show(scrollX);
     if (p.checkCollisionWithResponse()) {
-      onGround = true; // パイプの上に着地
+      onGround = true;
     }
   }
 
-  // ブロック
   for (Block b : blockManager.blocks) {
     b.show(scrollX);
     if (b.checkCollisionWithResponse()) {
-      onGround = true; // ブロックの上に着地
+      onGround = true;
     }
   }
 
-  // ハテナブロックの更新と描画、衝突判定
   for (QuestionBlock qb : qBlocks) {
     qb.show(scrollX);
-    // プレイヤーがハテナブロックと衝突した場合
     if (qb.checkCollisionWithPlayer()) {
-      // 叩かれたらアイテムを生成
       if (qb.isHit() && !qb.hasItemSpawned()) {
         items.add(new Item(qb.x + qb.size / 2, qb.y - qb.size / 2, fireFlowerImg));
-        qb.setItemSpawned(true); // アイテム生成済みフラグを立てる
+        qb.setItemSpawned(true);
       }
-      // ブロックの上にいる場合も着地とみなす
-      if (playerY < qb.y && playerY + playerSize / 2 >= qb.y) { // プレイヤーがブロックの「上」にいる判定
-         onGround = true;
+      if (playerY < qb.y && playerY + playerSize / 2 >= qb.y) {
+        onGround = true;
       }
     }
   }
 
-  // アイテムの更新と描画、プレイヤーとの衝突判定
   for (int i = items.size() - 1; i >= 0; i--) {
     Item item = items.get(i);
     item.update();
     item.show(scrollX);
     if (item.checkCollisionWithPlayer()) {
-      isPoweredUp = true; // プレイヤーを強化
-      items.remove(i); // アイテムを取得したら削除
+      isPoweredUp = true;
+      items.remove(i);
     }
   }
 
-  // 弾の更新と描画
   for (int i = bullets.size() - 1; i >= 0; i--) {
     Bullet b = bullets.get(i);
     b.update();
     b.show(scrollX);
 
-    // 弾が画面外に出たら削除
     if (b.x - scrollX < -50 || b.x - scrollX > width + 50) {
       bullets.remove(i);
       continue;
     }
 
-    // 弾と敵の衝突判定
     boolean bulletHitEnemy = false;
-    for (int j = enemies.size() - 1; j >= 0; j--) { // ArrayListのループに変更
-      Enemy e = enemies.get(j); // ArrayListのgetメソッドを使用
+    for (int j = enemies.size() - 1; j >= 0; j--) {
+      Enemy e = enemies.get(j);
       if (b.checkCollisionWithEnemy(e)) {
-        enemies.remove(j); // 敵をArrayListから削除
-        bullets.remove(i); // 弾を消す
+        enemies.remove(j);
+        bullets.remove(i);
         bulletHitEnemy = true;
-        break; // 1つの弾は1体の敵にしか当たらない
+        break;
       }
     }
     if (bulletHitEnemy) continue;
 
-    // 弾とブロックの衝突判定 (追加: 弾がブロックに当たったら消える)
     boolean bulletHitBlock = false;
     for (Block bl : blockManager.blocks) {
       if (b.checkCollisionWithBlock(bl.x, bl.y, bl.size)) {
@@ -176,8 +162,7 @@ void draw() {
       }
     }
     if (bulletHitBlock) continue;
-    
-    // 弾とハテナブロックの衝突判定 (追加: 弾がハテナブロックに当たったら消える)
+
     boolean bulletHitQBlock = false;
     for (QuestionBlock qb : qBlocks) {
       if (b.checkCollisionWithBlock(qb.x, qb.y, qb.size)) {
@@ -188,10 +173,8 @@ void draw() {
     }
     if (bulletHitQBlock) continue;
 
-     // 弾と土管の衝突判定 (追加: 弾が土管に当たったら消える)
     boolean bulletHitPipe = false;
     for (Pipe p : pipes) {
-      // 土管は幅と高さが異なるため、矩形衝突で判定
       if (b.x + b.size/2 > p.x - p.width/2 && b.x - b.size/2 < p.x + p.width/2 &&
           b.y + b.size/2 > p.y && b.y - b.size/2 < p.y + p.pipeHeight) {
         bullets.remove(i);
@@ -200,56 +183,87 @@ void draw() {
       }
     }
     if (bulletHitPipe) continue;
+
+    if (playerX > 3000 && !boss.isDefeated()) {
+      if (dist(b.x, b.y, boss.x, boss.y) < (b.size / 2) + (boss.size / 2)) {
+        boss.takeDamage();
+        bullets.remove(i);
+        continue;
+      }
+    }
   }
 
-  // 地面
   fill(50, 200, 70);
   rect(-scrollX, groundY, 2400, height - groundY);
   rect(2500 - scrollX, groundY, 340, height - groundY);
-  rect(3040 - scrollX, groundY, 2000, height - groundY);  
+  rect(3040 - scrollX, groundY, 2000, height - groundY);
 
-  // 地面との衝突判定 (地表面)
   boolean onSolidGroundArea = (playerX >= 0 && playerX <= 2400) || (playerX >= 2500 && playerX <= 2840) || (playerX >= 3040 && playerX <= 5040);
 
   if (playerY + playerSize / 2 >= groundY) {
     if (onSolidGroundArea) {
       playerY = groundY - playerSize / 2;
-      playerSpeedY = 0; // 地面に着地したら速度を0に
-      onGround = true;  // 地面の上にいると判定
-    } else {
-      // 穴の上なので落ちる (onGroundはfalseのまま)
+      playerSpeedY = 0;
+      onGround = true;
     }
   }
 
-  // 穴に落ちたらゲームオーバー
   if (playerY + playerSize / 2 - 100 > height) {
     println("ゲームオーバー！（落下）");
     restartGame();
   }
 
-  // 敵 (ArrayListのループに変更)
-  for (int i = enemies.size() - 1; i >= 0; i--) { // 後ろからループして安全に削除できるように
+  for (int i = enemies.size() - 1; i >= 0; i--) {
     Enemy e = enemies.get(i);
     e.move();
     e.show(scrollX);
     if (e.checkCollision(playerX, playerY, playerSize)) {
       println("ゲームオーバー！");
-      restartGame();  // 衝突時にゲームをリスタート
+      restartGame();
     }
   }
 
-  // ゴール
+  if (!boss.isDefeated()) {
+    boss.update(playerX, playerY);
+
+    boolean bossOnPipe = false;
+    for (Pipe p : pipes) {
+      if (boss.checkCollisionWithPipe(p)) {
+        bossOnPipe = true;
+        break;
+      }
+    }
+
+    for (int i = boss.bossBullets.size() - 1; i >= 0; i--) {
+      BossBullet bb = boss.bossBullets.get(i);
+      bb.update();
+
+      if (bb.checkCollisionWithPlayer(playerX, playerY, playerSize)) {
+        boss.bossBullets.remove(i); // 先に削除
+        println("ゲームオーバー！ (ボスの弾に被弾)");
+        restartGame();              // その後リスタート
+        continue;
+      }
+      if (bb.isOffScreen(scrollX)) {
+        boss.bossBullets.remove(i);
+        continue;
+      }
+    }
+
+    boss.show(scrollX);
+  }
+
   fill(255);
   rect(goalX - scrollX, groundY - 330, 10, 330);
   fill(255, 0, 0);
   ellipse(goalX - scrollX + 5, groundY - 330, 20, 20);
 
   if (playerX >= goalX) {
-    fill(0, 0, 0, 180);
-    textSize(40);
-    text("CLEAR!", width / 2 - 80, height / 2);
-    gameClear = true;
-    noLoop(); // ゲームクリアで停止
+      fill(0, 0, 0, 180);
+      textSize(40);
+      text("CLEAR!", width / 2 - 80, height / 2);
+      gameClear = true;
+      noLoop();
   }
 }
 
@@ -265,13 +279,11 @@ void keyPressed() {
   } else if (key == ' ' && onGround) {
     playerSpeedY = jumpPower;
     onGround = false;
-  } else if (key == 'z' || key == 'Z') { // Zキーで攻撃
+  } else if (key == 'z' || key == 'Z') {
     if (isPoweredUp) {
-      // プレイヤーの進行方向に応じて弾の方向を決定
       float bulletSpeed = 10;
-      float bulletDir = (playerSpeedX >= 0) ? 1 : -1; // 右向きなら1、左向きなら-1
-      if (playerSpeedX == 0) bulletDir = 1; // 止まっている場合は右向き
-
+      float bulletDir = (playerSpeedX >= 0) ? 1 : -1;
+      if (playerSpeedX == 0) bulletDir = 1;
       bullets.add(new Bullet(playerX + bulletDir * playerSize / 2, playerY, bulletSpeed * bulletDir));
     }
   }
@@ -289,11 +301,9 @@ void restartGame() {
   playerSpeedX = 0;
   playerSpeedY = 0;
   onGround = false;
-  isPoweredUp = false; // 強化状態をリセット
+  isPoweredUp = false;
   gameClear = false;
 
-  // 敵を初期化 (ArrayListの初期化)
-  enemies = new ArrayList<Enemy>();
   enemies = new ArrayList<Enemy>();
   enemies.add(new Enemy(600, groundY - 65, 50, 600, enemyImg1));
   enemies.add(new Enemy(1200, groundY - 65, 1050, 1330, enemyImg1));
@@ -303,15 +313,14 @@ void restartGame() {
   enemies.add(new Enemy(2600, groundY - 130, 0, 2600, enemyImg3));
   enemies.add(new Enemy(1400, groundY - 160, 0, 1400, enemyImg3));
 
-
-  // ハテナブロックを初期化 (叩かれる前の状態に戻す)
   qBlocks[0] = new QuestionBlock(440, 220, fireFlowerImg);
   qBlocks[1] = new QuestionBlock(2400, 150, fireFlowerImg);
 
-  items.clear();    // アイテムリストをクリア
-  bullets.clear(); // 弾リストをクリア
+  items.clear();
+  bullets.clear();
+  boss = new Boss(3600, groundY - 200 / 2, 200, bossImg);
 
-  loop(); // draw() 再開
+  loop();
 }
 
 void mousePressed() {
