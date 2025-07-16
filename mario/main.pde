@@ -34,6 +34,7 @@ boolean gameClear = false;
 // --- 画像ファイル ---
 PImage enemyImg1;
 PImage enemyImg2;
+PImage enemyImg3;
 PImage fireFlowerImg;    // ファイアフラワー
 
 void setup() {
@@ -41,6 +42,7 @@ void setup() {
 
   enemyImg1 = loadImage("kurosio.png");
   enemyImg2 = loadImage("udonn.png");
+  enemyImg3 = loadImage("sudachi.jpg");
   playerImg = loadImage("emika.png");
   playerPoweredUpImg = loadImage("dango.png"); // 強化時の画像をロード (例: ファイアフラワーのアイコンなど)
 
@@ -52,7 +54,10 @@ void setup() {
   enemies.add(new Enemy(1200, groundY - 65, 1050, 1330, enemyImg1));
   enemies.add(new Enemy(2000, groundY - 65, 1850, 2060, enemyImg2));
   enemies.add(new Enemy(2050, groundY - 65, 1900, 2110, enemyImg2));
-
+  enemies.add(new Enemy(2110, groundY - 180, 0, 2110, enemyImg3));
+  enemies.add(new Enemy(2600, groundY - 130, 0, 2600, enemyImg3));
+  enemies.add(new Enemy(1400, groundY - 160, 0, 1400, enemyImg3));
+  
   pipes = new Pipe[4];
   pipes[0] = new Pipe(1000, groundY - 75);
   pipes[1] = new Pipe(1800, groundY - 125);
@@ -294,6 +299,9 @@ void restartGame() {
   enemies.add(new Enemy(1200, groundY - 65, 1050, 1330, enemyImg1));
   enemies.add(new Enemy(2000, groundY - 65, 1850, 2060, enemyImg2));
   enemies.add(new Enemy(2050, groundY - 65, 1900, 2110, enemyImg2));
+  enemies.add(new Enemy(2110, groundY - 180, 0, 2110, enemyImg3));
+  enemies.add(new Enemy(2600, groundY - 130, 0, 2600, enemyImg3));
+  enemies.add(new Enemy(1400, groundY - 160, 0, 1400, enemyImg3));
 
 
   // ハテナブロックを初期化 (叩かれる前の状態に戻す)
