@@ -6,8 +6,8 @@ float playerY = 300;
 float playerSize = 50;
 float playerSpeedX = 0;
 float playerSpeedY = 0;
+boolean facingRight = true;
 boolean onGround = false;
-PImage playerImg;
 PImage playerPoweredUpImg;
 boolean isPoweredUp = false;
 float poweredUpImgOffsetY = -playerSize / 2 - 15;
@@ -36,6 +36,8 @@ boolean gameClear = false;
 PImage enemyImg1;
 PImage enemyImg2;
 PImage enemyImg3;
+PImage playerImgR;
+PImage playerImgL;
 PImage fireFlowerImg;
 PImage bossImg;
 
@@ -45,7 +47,8 @@ void setup() {
   enemyImg1 = loadImage("kurosio.png");
   enemyImg2 = loadImage("udonn.png");
   enemyImg3 = loadImage("sudachi.png");
-  playerImg = loadImage("emika.png");
+  playerImgL = loadImage("emikaleft.png");
+  playerImgR = loadImage("emikaright.png");
   playerPoweredUpImg = loadImage("dango.png");
   bossImg = loadImage("aidaimikyan.png");
 
@@ -85,7 +88,11 @@ void draw() {
   scrollX = playerX - 100;
 
   imageMode(CENTER);
-  image(playerImg, playerX - scrollX, playerY, playerSize, playerSize);
+  if (facingRight) {
+  image(playerImgR, playerX - scrollX, playerY, playerSize, playerSize);
+  }else {
+  image(playerImgL, playerX - scrollX, playerY, playerSize, playerSize);
+  }
   if (isPoweredUp) {
     image(playerPoweredUpImg, playerX - scrollX, playerY + poweredUpImgOffsetY, 30, 30);
   }
@@ -274,16 +281,17 @@ void updatePlayer() {
 void keyPressed() {
   if (keyCode == RIGHT) {
     playerSpeedX = 5;
+    facingRight = true;
   } else if (keyCode == LEFT) {
     playerSpeedX = -5;
+    facingRight = false;
   } else if (key == ' ' && onGround) {
     playerSpeedY = jumpPower;
     onGround = false;
   } else if (key == 'z' || key == 'Z') {
     if (isPoweredUp) {
       float bulletSpeed = 10;
-      float bulletDir = (playerSpeedX >= 0) ? 1 : -1;
-      if (playerSpeedX == 0) bulletDir = 1;
+      float bulletDir = facingRight ? 1 : -1;
       bullets.add(new Bullet(playerX + bulletDir * playerSize / 2, playerY, bulletSpeed * bulletDir));
     }
   }
