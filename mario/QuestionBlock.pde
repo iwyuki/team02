@@ -35,12 +35,12 @@ class QuestionBlock {
 
       // 下から叩かれた場合
       if (playerSpeedY < 0 && py + pr > y + size/2 && py - pr < y + size) {
-        if (!hit) {
-          hit = true; // 叩かれた状態にする
           // 叩かれたらプレイヤーをブロックの下に押し戻す
           playerY = y + size + pr;
           playerSpeedY = 0; // 速度もリセット
-        }
+          if(!hit){
+            hit = true;
+          }
       }
       // 上から乗った場合 (着地判定のため)
       else if (playerSpeedY >= 0 && py + pr <= y + playerSpeedY + size && py + pr >= y) {
