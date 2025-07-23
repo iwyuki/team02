@@ -24,7 +24,9 @@ class Bullet {
   boolean checkCollisionWithEnemy(Enemy e) {
     float r1 = size / 2;
     float r2 = e.size / 2;
-    float distCentersSq = (x - e.x) * (x - e.x) + (y - e.y) * (y - e.y);
+    float distCentersSq = ((x + size/2) - (e.x + e.size/2)) * ((x + size/2) - (e.x + e.size/2)) +
+                      ((y + size/2) - (e.y + e.size/2)) * ((y + size/2) - (e.y + e.size/2));
+
     return distCentersSq < (r1 + r2) * (r1 + r2);
   }
 

@@ -33,9 +33,9 @@ class Enemy {
   }
 
   boolean checkCollision(float px, float py, float psize) {
-    return (px + psize / 2 > x &&
-            px - psize / 2 < x + size &&
-            py + psize / 2 > y &&
-            py - psize / 2 < y + size);
+    return (px + psize /2 > x &&
+            px - psize /2 < x + size &&
+            py + psize /2 > y &&
+            py - psize /2 < y + size);
   }
 }
